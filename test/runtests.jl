@@ -1,12 +1,11 @@
 using Test
 using XAM
 import BioAlignments: Alignment, AlignmentAnchor, OP_START, OP_MATCH, OP_DELETE, header
+using FormatSpecimens
 import BGZFStreams: BGZFStream
 import BioCore.Exceptions: MissingFieldException
-import BioCore.Testing.get_bio_fmt_specimens
 import BioSequences: @dna_str, @aa_str
 import GenomicFeatures
-import YAML
 
 
 # Generate a random range within `range`.
@@ -21,7 +20,7 @@ function randrange(range)
 end
 
 @testset "SAM" begin
-    samdir = joinpath(get_bio_fmt_specimens("master", false, true), "SAM")
+    samdir = path_of_format("SAM")
 
     @testset "MetaInfo" begin
         metainfo = SAM.MetaInfo()
@@ -161,8 +160,8 @@ end
             end
             return true
         end
-        for specimen in YAML.load_file(joinpath(samdir, "index.yml"))
-            filepath = joinpath(samdir, specimen["filename"])
+        for specimen in list_valid_specimens("SAM")
+            filepath = joinpath(samdir, filename(specimen))
             mktemp() do path, io
                 # copy
                 reader = open(SAM.Reader, filepath)
@@ -181,7 +180,7 @@ end
 end
 
 @testset "BAM" begin
-    bamdir = joinpath(get_bio_fmt_specimens("master", false), "BAM")
+    bamdir = path_of_format("BAM")
 
     @testset "AuxData" begin
         auxdata = BAM.AuxData(UInt8[])
@@ -359,11 +358,11 @@ end
     end
 
     @testset "Round trip" begin
-        for specimen in YAML.load_file(joinpath(bamdir, "index.yml"))
-            filepath = joinpath(bamdir, specimen["filename"])
+        for specimen in list_valid_specimens("BAM")
+            filepath = joinpath(bamdir, filename(specimen))
             mktemp() do path, _
                 # copy
-                if occursin("bai", get(specimen, "tags", ""))
+                if hastags(specimen) && in("bai", tags(specimen))
                     reader = open(BAM.Reader, filepath, index=filepath * ".bai")
                 else
                     reader = open(BAM.Reader, filepath)
