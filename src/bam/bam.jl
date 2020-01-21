@@ -6,6 +6,7 @@ module BAM
 import BGZFStreams
 import BioAlignments
 import XAM: XAM, SAM
+import Indexes
 import GenomicFeatures: GenomicFeatures, Interval
 import BioSequences
 import BioGenerics: BioGenerics, isfilled, header
